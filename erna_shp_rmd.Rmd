@@ -1,0 +1,48 @@
+---
+title: "ERNA_SHP"
+author: "Jonathan Amegin"
+date: "2024-09-05"
+output: html_document
+---
+```{r}
+library(dplyr)
+library(sf)
+library(shapefiles)
+library(readr)
+library(ggplot2)
+library(lubridate)
+
+setwd("~/R documents/ERNA_survey_SHP")
+
+plant_1 <- read_csv("data/plant_1.csv")
+row_blocks <- read_csv("data/_2024_ERNA_GrasslandRestoration_BLM_ChatfieldCommonGarden_0.csv")
+```
+Need to make a spatial plot design with 40 rows, subsets of 4 rows/block (10 blocks). Each row has 20-30 plants. 
+Individual plants have the Block/row combos already in data. 
+Maybe a 'case_when' mutation to create a coordinate system? e.i each block number represents a meter mark, and the plant position equals a multiple of 15cm along the row?
+```{r}
+erna <- left_join(plant_1, row_blocks[,c(2,7,8)], join_by("ParentGlobalID" == "GlobalID"), relationship = "many-to-one")
+
+erna_design <- erna  %>% 
+mutate( x = (`Block` - 1) + (`Row In Block` * 0.25)) 
+
+erna_design$date = substr(erna_design$date, 1, nchar(erna_design$date)-2)
+erna_design$date = mdy_hms(erna_design$date)
+ 
+
+erna_design %>% 
+  filter()
+  ggplot( mapping = aes( x = x , y = `Plant Position In Row`, color = as.factor(`phenology`))) +
+  geom_point( )
+
+```
+Need to make a spatial plot design with 40 rows, subsets of 4 rows/block (10 blocks). Each row has 20-30 plants. 
+Individual plants have the Block/row combos already in data. 
+Maybe a 'case_when' mutation to create a coordinate system? e.i each block number represents a meter mark, and the plant position equals a multiple of 15cm along the row?
+
+```{r}
+tibble( id = seq(1:n_distinct(plant_1$plantID)), 
+)
+
+```
+
