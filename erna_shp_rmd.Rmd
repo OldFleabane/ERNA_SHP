@@ -59,11 +59,26 @@ correct_data$date = mdy(correct_data$date)
 
 correct_data <- lapply(paste("data/corrected_data/" , list.files(path = "data/corrected_data", pattern = "\\.csv$"), sep = "" ), read_csv)
 
-erna2 <- correct_data %>% reduce(full_join, by = "date")
+#erna2 <- correct_data %>% reduce(left_join, by = "plantID_db")
 
 erna1[is.na(erna1)] <- 0
 
+bind1 <-  correct_data %>% reduce(rbind)
+bind1$date = mdy(bind1$date)
+
+good_points <- left_join(bind1, erna_design[1:n_distinct(erna_design$plantID_db),c("plantID_db", "Plant Position In Row", "x_coord")], by = "plantID_db")
 
 
+#erna_design[1:n_distinct(erna_design$plantID_db),c("plantID_db", "Plant Position In Row", "x_coord")]
+
+#erna_points[952,]
+#bind1[62,]
+#erna_design[c(which(erna_design$plantID_db == 1197)),]
+
+
+good_points %>% 
+  filter(date == "2024-07-01") %>% 
+  ggplot(mapping = aes( x = x_coord, y = `Plant Position In Row`, color = as.factor(survival))) +
+  geom_point()
 ```
 
