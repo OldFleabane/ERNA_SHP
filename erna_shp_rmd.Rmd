@@ -5,6 +5,7 @@ date: "2024-09-05"
 output: html_document
 ---
 ```{r}
+library(tidyverse)
 library(dplyr)
 library(sf)
 library(shapefiles)
@@ -24,25 +25,45 @@ Maybe a 'case_when' mutation to create a coordinate system? e.i each block numbe
 erna <- left_join(plant_1, row_blocks[,c(2,7,8)], join_by("ParentGlobalID" == "GlobalID"), relationship = "many-to-one")
 
 erna_design <- erna  %>% 
-mutate( x = (`Block` - 1) + (`Row In Block` * 0.25)) 
+mutate( x_coord = (`Block` - 1) + (`Row In Block` * 0.25)) 
 
 erna_design$date = substr(erna_design$date, 1, nchar(erna_design$date)-2)
 erna_design$date = mdy_hms(erna_design$date)
  
+erna_points <- erna_design[, c("plantID_db", "ObjectID", "Plant Position In Row", "x_coord")]
+
+
 
 erna_design %>% 
-  filter()
-  ggplot( mapping = aes( x = x , y = `Plant Position In Row`, color = as.factor(`phenology`))) +
-  geom_point( )
-
+  group_by(Block, `Row In Block`, date) %>% 
+  summarise( n_surv = sum(survival)) %>% 
+  ggplot(mapping = aes( x = date, y = n_surv)) +
+  geom_col()
 ```
+
 Need to make a spatial plot design with 40 rows, subsets of 4 rows/block (10 blocks). Each row has 20-30 plants. 
 Individual plants have the Block/row combos already in data. 
 Maybe a 'case_when' mutation to create a coordinate system? e.i each block number represents a meter mark, and the plant position equals a multiple of 15cm along the row?
 
+
+Realized the Survey123 data has errors due to corrections made on back end. Need to use the data updates and bind them together. 
+
 ```{r}
-tibble( id = seq(1:n_distinct(plant_1$plantID)), 
-)
+## correct_data <- paste("data/corrected_data/" , list.files(path = "data/corrected_data", pattern = "\\.csv$"), sep = "" ) %>% 
+##    map_df(~read_csv(.))
+
+n_distinct(correct_data$plantID)
+
+correct_data$date = mdy(correct_data$date)
+
+
+correct_data <- lapply(paste("data/corrected_data/" , list.files(path = "data/corrected_data", pattern = "\\.csv$"), sep = "" ), read_csv)
+
+erna2 <- correct_data %>% reduce(full_join, by = "date")
+
+erna1[is.na(erna1)] <- 0
+
+
 
 ```
 
